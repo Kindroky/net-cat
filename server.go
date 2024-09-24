@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -12,7 +13,9 @@ import (
 type Client struct {
 	Conn     net.Conn
 	Username string
-	message  string
+	Reader   io.Reader
+	Writer   io.Writer
+	Message  string
 }
 
 var clients = make(map[string]Client)
@@ -26,18 +29,25 @@ func main() {
 	count := 0
 	for {
 		connexion, err := listener.Accept()
-		defer connexion.Close()
 		if count <= 10 {
 			if err != nil {
 				log.Fatal(err)
 			}
 			count++
-			usernumber := strconv.Itoa(count)
-			v := Client{
-				connexion, "User" + usernumber,
+			username := HandleUsernameClient(connexion)
+			r := bufio.NewReader(connexion)
+			w := bufio.NewWriter(connexion)
+			newClient := Client{
+				connexion,
+				username,
+				r,
+				w,
+				"",
 			}
-			clients["User"+usernumber] = v
-			go HandleClient(connexion, count)
+			clients[username] = newClient
+			if username != "" {
+				go HandleClient(clients[username], count)
+			}
 		} else {
 			bye := "Maximum connections reached"
 			connexion.Write([]byte(bye))
@@ -45,19 +55,28 @@ func main() {
 	}
 }
 
-// function that handles each client's activity on the server
-func HandleClient(con net.Conn, count int) {
-	con.Write([]byte(strconv.Itoa(count) + "\n"))
-	var message string
-	//tab := []byte{}
-	/*con.Read(tab)
-	con.Write(tab)*/
-	Bonjour := bufio.NewScanner(con)
+func HandleUsernameClient(conn net.Conn) string {
+	buf := bufio.NewScanner(conn)
 	for {
-		Bonjour.Scan()
-		message = Bonjour.Text() + "\n"
+		buf.Scan()
+		name := buf.Text() + "\n"
+		if name != "\n" {
+			return name
+		} else {
+			HandleUsernameClient(conn)
+		}
+	}
+}
+func HandleClient(structure Client, count int) {
+	defer structure.Conn.Close()
+	structure.Conn.Write([]byte(strconv.Itoa(count) + "\n"))
+	var message string
+	bufClient := bufio.NewScanner(structure.Conn)
+	for {
+		bufClient.Scan()
+		message = bufClient.Text() + "\n"
 		if message != "\n" {
-			con.Write([]byte(message))
+			structure.Conn.Write([]byte(message))
 		}
 	}
 }
@@ -66,7 +85,7 @@ func HandleClient(con net.Conn, count int) {
 func Transmission(clientstruct Client) {
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			fmtMessage := fmt.Sprintf("[%s][%s]: %s\n", Time(), clientstruct.Username, clientstruct.message)
+			fmtMessage := fmt.Sprintf("[%s][%s]: %s\n", Time(), clientstruct.Username, clientstruct.Message)
 			client.Conn.Write([]byte(fmtMessage))
 		}
 	}
