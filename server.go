@@ -5,11 +5,12 @@ import (
 	"log"
 	"net"
 	"strconv"
+	//"time"
 )
 
 type Client struct {
-	conn     net.Conn
-	username string
+	Conn     net.Conn
+	Username string
 }
 
 var clients = make(map[string]Client)
@@ -22,13 +23,22 @@ func main() {
 	defer listener.Close()
 	count := 0
 	for {
+		connexion, err := listener.Accept()
+		defer connexion.Close()
 		if count <= 10 {
-			connexion, err := listener.Accept()
 			if err != nil {
 				log.Fatal(err)
 			}
 			count++
+			usernumber := strconv.Itoa(count)
+			v := Client{
+				connexion, "User" + usernumber,
+			}
+			clients["User"+usernumber] = v
 			go HandleClient(connexion, count)
+		} else {
+			bye := "Maximum connections reached"
+			connexion.Write([]byte(bye))
 		}
 	}
 }
@@ -48,3 +58,17 @@ func HandleClient(con net.Conn, count int) {
 		}
 	}
 }
+
+/*
+func Transmission(sender Client, message string, clients map) {
+	for _, client := range clients {
+		if client != sender {
+			client.conn.Write(fmt.Sprintf("[%s][%s]: %s", currentTime(), username, []byte(message + "\n")))
+		}
+	}
+}
+
+func Time() string {
+	return time.Now().Format("2006-01-02 15:04:05")
+}
+*/
