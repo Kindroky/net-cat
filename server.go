@@ -2,10 +2,11 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
-	//"time"
+	"time"
 )
 
 type Client struct {
@@ -43,6 +44,7 @@ func main() {
 	}
 }
 
+// function that handles each client's activity on the server
 func HandleClient(con net.Conn, count int) {
 	con.Write([]byte(strconv.Itoa(count) + "\n"))
 	var message string
@@ -59,16 +61,37 @@ func HandleClient(con net.Conn, count int) {
 	}
 }
 
-/*
-func Transmission(sender Client, message string, clients map) {
+// funcion that transmits a client's message to everybody else
+func Transmission(clientstruct Client) {
 	for _, client := range clients {
-		if client != sender {
-			client.conn.Write(fmt.Sprintf("[%s][%s]: %s", currentTime(), username, []byte(message + "\n")))
+		if client.Username != clientstruct.Username {
+			fmtMessage := fmt.Sprintf("[%s][%s]: %s\n", Time(), clientstruct.Username, message)
+			client.Conn.Write([]byte(fmtMessage))
 		}
 	}
 }
 
+// function that transmits a client's arrival in the chat to everybody else
+func Logtransmission(clientstruct Client) {
+	for _, client := range clients {
+		if client.Username != clientstruct.Username {
+			fmtMessage := fmt.Sprintf("[%s]: Yay! %s has joined the chat!", Time(), clientstruct.Username)
+			client.Conn.Write([]byte(fmtMessage))
+		}
+	}
+}
+
+// function that transmits a client's exit of the chat to everybody else
+func Delogtransmission(clientstruct Client) {
+	for _, client := range clients {
+		if client.Username != clientstruct.Username {
+			fmtMessage := fmt.Sprintf("[%s]: Unfortunately, %s has left us...", Time(), clientstruct.Username)
+			client.Conn.Write([]byte(fmtMessage))
+		}
+	}
+}
+
+// function that computes and properly formats the date and time
 func Time() string {
 	return time.Now().Format("2006-01-02 15:04:05")
 }
-*/
