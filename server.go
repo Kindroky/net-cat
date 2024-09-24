@@ -12,6 +12,7 @@ import (
 type Client struct {
 	Conn     net.Conn
 	Username string
+	message  string
 }
 
 var clients = make(map[string]Client)
@@ -65,7 +66,7 @@ func HandleClient(con net.Conn, count int) {
 func Transmission(clientstruct Client) {
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			fmtMessage := fmt.Sprintf("[%s][%s]: %s\n", Time(), clientstruct.Username, message)
+			fmtMessage := fmt.Sprintf("[%s][%s]: %s\n", Time(), clientstruct.Username, clientstruct.message)
 			client.Conn.Write([]byte(fmtMessage))
 		}
 	}
