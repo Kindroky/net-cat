@@ -28,23 +28,34 @@ func main() {
 				log.Fatal(err)
 			}
 			count++
-			go HandleClient(connexion, count)
+			go HandleClient(connexion, &count)
 		}
 	}
 }
 
-func HandleClient(con net.Conn, count int) {
-	con.Write([]byte(strconv.Itoa(count) + "\n"))
+func HandleClient(con net.Conn, count *int) {
+	con.Write([]byte(strconv.Itoa(*count) + "\n"))
 	var message string
 	//tab := []byte{}
 	/*con.Read(tab)
 	con.Write(tab)*/
-	Bonjour := bufio.NewScanner(con)
-	for {
-		Bonjour.Scan()
-		message = Bonjour.Text() + "\n"
+	scanner := bufio.NewScanner(con)
+	connected := true
+	for connected {
+		scanner.Scan()
+		message = scanner.Text() + "\n"
 		if message != "\n" {
-			con.Write([]byte(message))
+			if message[0] == '/' {
+				if message == "/exit\n" {
+					*count--
+					connected = false
+					con.Close()
+				} else {
+					con.Write([]byte("Command not found\n"))
+				}
+			} else {
+				con.Write([]byte(message))
+			}
 		}
 	}
 }
