@@ -86,6 +86,21 @@ _)      \.___.,|     .'
 		}
 	}
 }
+
+func HandleNewName(conn net.Conn) string {
+	conn.Write([]byte("[ENTER YOUR NAME]:"))
+	buf := bufio.NewScanner(conn)
+	for {
+		buf.Scan()
+		name := buf.Text() + ""
+		if name != "" {
+			return name
+		} else {
+			HandleNewName(conn)
+		}
+	}
+}
+
 func HandleClient(structure Client, count *int) {
 	defer structure.Conn.Close()
 
@@ -110,8 +125,11 @@ func HandleClient(structure Client, count *int) {
 					Delogtransmission(structure)
 					*count--
 					structure.Conn.Close()
+				} else if message == "/rename\n" {
+					structure.Username = HandleNewName(structure.Conn)
 				} else {
 					structure.Conn.Write([]byte("Command not found\n"))
+
 				}
 			} else {
 				// Regular message handling
