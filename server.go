@@ -1,54 +1,70 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"net"
-	"strconv"
-	"time"
+	"os"
 )
 
-type Client struct {
-	Conn     net.Conn
-	Username string
-	Reader   io.Reader
-	Writer   io.Writer
-	Message  string
-}
-
-var clients = make(map[string]Client)
-
 func main() {
-	listener, err := net.Listen("tcp", ":2525")
+	portStr := IsValidArgPort()
+	if portStr == nil {
+		return
+	}
+	listener := ServerCreation(portStr)
+	file := CreateLogsFile()
+	NewUserConnection(listener, file)
+}
+func IsValidArgPort() *string {
+	portStr := ":"
+	isValid := true
+	args := os.Args[1:]
+	if len(args) == 0 {
+		return &portStr
+	} else if len(args) > 1 || len(args[0]) != 4 {
+		isValid = false
+	} else {
+		for _, b := range args[0] {
+			if b < 48 || b > 57 {
+				isValid = false
+				break
+			}
+		}
+	}
+	if !isValid {
+		fmt.Println("[USAGE]: ./TCPChat $port")
+		return nil
+	} else {
+		return &portStr
+	}
+}
+func ServerCreation(portStr *string) net.Listener {
+	if *portStr == ":" {
+		*portStr += "8989"
+	}
+	listener, err := net.Listen("tcp", *portStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer listener.Close()
+	return listener
+}
+func NewUserConnection(listener net.Listener, file *os.File) {
 	count := 0
 	for {
 		connexion, err := listener.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
 		if count < 10 {
-			if err != nil {
-				log.Fatal(err)
-			}
 			count++
-			username := HandleUsername(connexion)
-			r := bufio.NewReader(connexion)
-			w := bufio.NewWriter(connexion)
-			newClient := Client{
-				connexion,
-				username,
-				r,
-				w,
-				"",
-			}
-			clients[username] = newClient
-			if username != "" {
-				go HandleClient(clients[username], &count)
-				Logtransmission(clients[username])
-			}
+			LePingouin(connexion)
+			StructAndMap(connexion)
+			// Non fonctionnel
+			/* logsToTransmit := ReadLogs(file)
+			PreviousLogsTransmission(clients[connexion], logsToTransmit) */
+			go HandleClient(clients[connexion], &count, file)
+			LogTransmission(clients[connexion], file)
 		} else {
 			connexion.Write([]byte("Maximum connections reached"))
 			connexion.Close()
@@ -56,8 +72,24 @@ func main() {
 	}
 }
 
-func HandleUsername(conn net.Conn) string {
-	conn.Write([]byte(`Welcome to TCP-Chat!
+func CreateLogsFile() *os.File {
+	file, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND|os.O_TRUNC, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return file
+}
+
+// Non fonctionnel
+/* func ReadLogs(file *os.File) *string {
+	bufLogsFile := bufio.NewScanner(file)
+	bufLogsFile.Scan()
+	logs := bufLogsFile.Text()
+	return &logs
+} */
+
+func LePingouin(connexion net.Conn) {
+	connexion.Write([]byte(`Welcome to TCP-Chat!
          _nnnn_
         dGGGGMMb
        @p~qp~~qMb
@@ -74,105 +106,7 @@ func HandleUsername(conn net.Conn) string {
 _)      \.___.,|     .'
 \____   )MMMMMP|   .'
      ` + "`" + `-'       ` + "`" + `--'
-[ENTER YOUR NAME]:`))
-	buf := bufio.NewScanner(conn)
-	for {
-		buf.Scan()
-		name := buf.Text() + ""
-		if name != "" {
-			return name
-		} else {
-			HandleUsername(conn)
-		}
-	}
-}
-
-func HandleNewName(conn net.Conn) string {
-	conn.Write([]byte("[ENTER YOUR NAME]:"))
-	buf := bufio.NewScanner(conn)
-	for {
-		buf.Scan()
-		name := buf.Text() + ""
-		if name != "" {
-			return name
-		} else {
-			HandleNewName(conn)
-		}
-	}
-}
-
-func HandleClient(structure Client, count *int) {
-	defer structure.Conn.Close()
-
-	// Send initial message with client count
-	structure.Conn.Write([]byte(strconv.Itoa(*count) + "\n"))
-	var message string
-	bufClient := bufio.NewScanner(structure.Reader)
-	for {
-		// Send the formatted message every time before reading input
-		fmtMessage := fmt.Sprintf("[%s][%s]: ", Time(), structure.Username)
-		structure.Conn.Write([]byte(fmtMessage))
-
-		// Read the client's message
-		bufClient.Scan()
-		message = bufClient.Text() + "\n"
-
-		// Ignore empty messages
-		if message != "\n" {
-			// Handle commands
-			if message[0] == '/' {
-				if message == "/exit\n" {
-					Delogtransmission(structure)
-					*count--
-					structure.Conn.Close()
-				} else if message == "/rename\n" {
-					structure.Username = HandleNewName(structure.Conn)
-				} else {
-					structure.Conn.Write([]byte("Command not found\n"))
-
-				}
-			} else {
-				// Regular message handling
-				structure.Message = message
-				Transmission(structure)
-			}
-		}
-	}
-}
-
-// funcion that transmits a client's message to everybody else
-func Transmission(clientstruct Client) {
-	for _, client := range clients {
-		if client.Username != clientstruct.Username {
-			fmtMessage := fmt.Sprintf("[%s][%s]: %s", Time(), clientstruct.Username, clientstruct.Message)
-			client.Conn.Write([]byte(fmtMessage))
-		}
-	}
-}
-
-// function that transmits a client's arrival in the chat to everybody else
-func Logtransmission(clientstruct Client) {
-	for _, client := range clients {
-		if client.Username != clientstruct.Username {
-			fmtMessage := fmt.Sprintf("Yay! %s has joined the chat!\n", clientstruct.Username)
-			client.Conn.Write([]byte(fmtMessage))
-		}
-	}
-}
-
-// function that transmits a client's exit of the chat to everybody else
-func Delogtransmission(clientstruct Client) {
-	for _, client := range clients {
-		if client.Username != clientstruct.Username {
-			fmtMessage := fmt.Sprintf("Unfortunately, %s has left us...\n", clientstruct.Username)
-			client.Conn.Write([]byte(fmtMessage))
-		}
-	}
-}
-
-// function that computes and properly formats the date and time
-func Time() string {
-	return time.Now().Format("2006-01-02 15:04:05")
+`))
 }
 
 func HandleExit(con net.Conn) {
