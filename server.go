@@ -41,6 +41,7 @@ func HandleClient(con net.Conn, count *int) {
 	con.Write(tab)*/
 	scanner := bufio.NewScanner(con)
 	connected := true
+	defer HandleExit(con)
 	for connected {
 		scanner.Scan()
 		message = scanner.Text() + "\n"
@@ -49,8 +50,7 @@ func HandleClient(con net.Conn, count *int) {
 				if message == "/exit\n" {
 					*count--
 					connected = false
-					con.Write([]byte("Press Enter again to leave."))
-					con.Close()
+					return
 				} else {
 					con.Write([]byte("Command not found\n"))
 				}
@@ -59,4 +59,9 @@ func HandleClient(con net.Conn, count *int) {
 			}
 		}
 	}
+}
+
+func HandleExit(con net.Conn) {
+	con.Write([]byte("Exiting..."))
+	con.Close()
 }
