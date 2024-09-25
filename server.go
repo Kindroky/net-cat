@@ -88,13 +88,23 @@ _)      \.___.,|     .'
 }
 func HandleClient(structure Client, count *int) {
 	defer structure.Conn.Close()
+
+	// Send initial message with client count
 	structure.Conn.Write([]byte(strconv.Itoa(*count) + "\n"))
 	var message string
 	bufClient := bufio.NewScanner(structure.Reader)
 	for {
+		// Send the formatted message every time before reading input
+		fmtMessage := fmt.Sprintf("[%s][%s]: ", Time(), structure.Username)
+		structure.Conn.Write([]byte(fmtMessage))
+
+		// Read the client's message
 		bufClient.Scan()
 		message = bufClient.Text() + "\n"
+
+		// Ignore empty messages
 		if message != "\n" {
+			// Handle commands
 			if message[0] == '/' {
 				if message == "/exit\n" {
 					Delogtransmission(structure)
@@ -104,6 +114,7 @@ func HandleClient(structure Client, count *int) {
 					structure.Conn.Write([]byte("Command not found\n"))
 				}
 			} else {
+				// Regular message handling
 				structure.Message = message
 				Transmission(structure)
 			}
@@ -115,7 +126,7 @@ func HandleClient(structure Client, count *int) {
 func Transmission(clientstruct Client) {
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			fmtMessage := fmt.Sprintf("[%s][%s]: %s\n", Time(), clientstruct.Username, clientstruct.Message)
+			fmtMessage := fmt.Sprintf("[%s][%s]: %s", Time(), clientstruct.Username, clientstruct.Message)
 			client.Conn.Write([]byte(fmtMessage))
 		}
 	}
@@ -125,7 +136,7 @@ func Transmission(clientstruct Client) {
 func Logtransmission(clientstruct Client) {
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			fmtMessage := fmt.Sprintf("[%s]: Yay! %s has joined the chat!\n", Time(), clientstruct.Username)
+			fmtMessage := fmt.Sprintf("Yay! %s has joined the chat!\n", clientstruct.Username)
 			client.Conn.Write([]byte(fmtMessage))
 		}
 	}
@@ -135,7 +146,7 @@ func Logtransmission(clientstruct Client) {
 func Delogtransmission(clientstruct Client) {
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			fmtMessage := fmt.Sprintf("[%s]: Unfortunately, %s has left us...\n", Time(), clientstruct.Username)
+			fmtMessage := fmt.Sprintf("Unfortunately, %s has left us...\n", clientstruct.Username)
 			client.Conn.Write([]byte(fmtMessage))
 		}
 	}
