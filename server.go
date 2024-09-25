@@ -49,6 +49,7 @@ func HandleClient(con net.Conn, count *int) {
 				if message == "/exit\n" {
 					*count--
 					connected = false
+					con.Write([]byte("Press Enter again to leave."))
 					con.Close()
 				} else {
 					con.Write([]byte("Command not found\n"))
