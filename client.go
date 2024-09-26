@@ -63,6 +63,7 @@ func HandleClient(structure Client, count *int, file *os.File) {
 		delete(clients, structure.Conn)
 		*count--
 	}()
+
 	// Send initial message with client count
 	structure.Conn.Write([]byte(strconv.Itoa(*count) + "\n"))
 	var message string

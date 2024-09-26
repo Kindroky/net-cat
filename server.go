@@ -59,18 +59,22 @@ func NewUserConnection(listener net.Listener, file *os.File) {
 		connexion, err := listener.Accept()
 		if err != nil {
 			log.Fatal(err)
+			continue
 		}
-		if count < 10 {
-			count++
+		if count > 9 {
+			connexion.Write([]byte("Maximum connections reached"))
+			connexion.Close()
+			continue
+
+		}
+		count++
+		go func(connexion net.Conn) {
 			LePingouin(connexion)
 			StructAndMap(connexion)
 			connexion.Write([]byte(Logs))
 			go HandleClient(clients[connexion], &count, file)
 			LogTransmission(clients[connexion], file)
-		} else {
-			connexion.Write([]byte("Maximum connections reached"))
-			connexion.Close()
-		}
+		}(connexion)
 	}
 }
 
