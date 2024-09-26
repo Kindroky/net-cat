@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"net"
 	"os"
@@ -68,10 +67,6 @@ func HandleClient(structure Client, count *int, file *os.File) {
 	var message string
 	bufClient := bufio.NewScanner(structure.Reader)
 	for {
-		// Send the formatted message every time before reading input
-		fmtMessage := fmt.Sprintf("[%s][%s]: ", Time(), structure.Username)
-		structure.Conn.Write([]byte(fmtMessage))
-
 		// Read the client's message
 		bufClient.Scan()
 		message = bufClient.Text() + "\n"
