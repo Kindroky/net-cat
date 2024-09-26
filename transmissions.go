@@ -7,10 +7,11 @@ import (
 	"time"
 )
 
-// funcion that transmits a client's message to everybody else
+// function that transmits a client's message to everybody else
 func Transmission(clientstruct Client, file *os.File) {
 	fmtMessage := fmt.Sprintf("[%s][%s]: %s", Time(), clientstruct.Username, clientstruct.Message)
 	_, err := file.Write([]byte(fmtMessage))
+	Logs += fmtMessage
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,6 +26,7 @@ func Transmission(clientstruct Client, file *os.File) {
 func LogTransmission(clientstruct Client, file *os.File) {
 	fmtMessage := fmt.Sprintf("Yay! %s has joined the chat!\n", clientstruct.Username)
 	_, err := file.Write([]byte(fmtMessage))
+	Logs += fmtMessage
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,6 +41,7 @@ func LogTransmission(clientstruct Client, file *os.File) {
 func DelogTransmission(clientstruct Client, file *os.File) {
 	fmtMessage := fmt.Sprintf("Unfortunately, %s has left us...\n", clientstruct.Username)
 	_, err := file.Write([]byte(fmtMessage))
+	Logs += fmtMessage
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,6 +56,7 @@ func DelogTransmission(clientstruct Client, file *os.File) {
 func RenameTransmission(clientstruct Client, oldUsername string, file *os.File) {
 	fmtMessage := fmt.Sprintf("Wow, %s is now known as %s !\n", oldUsername, clientstruct.Username)
 	_, err := file.Write([]byte(fmtMessage))
+	Logs += fmtMessage
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,11 +64,6 @@ func RenameTransmission(clientstruct Client, oldUsername string, file *os.File) 
 		client.Conn.Write([]byte(fmtMessage))
 	}
 }
-
-// Non fonctionnel
-/* func PreviousLogsTransmission(clientstruct Client, logs *string) {
-	clientstruct.Conn.Write([]byte(*logs))
-} */
 
 // function that computes and properly formats the date and time
 func Time() string {

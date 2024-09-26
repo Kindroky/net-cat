@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+var Logs string
+
 func main() {
 	portStr := IsValidArgPort()
 	if portStr == nil {
@@ -61,9 +63,7 @@ func NewUserConnection(listener net.Listener, file *os.File) {
 			count++
 			LePingouin(connexion)
 			StructAndMap(connexion)
-			// Non fonctionnel
-			/* logsToTransmit := ReadLogs(file)
-			PreviousLogsTransmission(clients[connexion], logsToTransmit) */
+			connexion.Write([]byte(Logs))
 			go HandleClient(clients[connexion], &count, file)
 			LogTransmission(clients[connexion], file)
 		} else {
@@ -80,14 +80,6 @@ func CreateLogsFile() *os.File {
 	}
 	return file
 }
-
-// Non fonctionnel
-/* func ReadLogs(file *os.File) *string {
-	bufLogsFile := bufio.NewScanner(file)
-	bufLogsFile.Scan()
-	logs := bufLogsFile.Text()
-	return &logs
-} */
 
 func LePingouin(connexion net.Conn) {
 	connexion.Write([]byte(`Welcome to TCP-Chat!

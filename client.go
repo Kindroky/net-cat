@@ -60,20 +60,6 @@ func HandleUsername(connexion net.Conn) string {
 	return username
 }
 
-/* func HandleNewName(conn net.Conn) string {
-	conn.Write([]byte("[ENTER YOUR NAME]:"))
-	buf := bufio.NewScanner(conn)
-	for {
-		buf.Scan()
-		name := buf.Text() + ""
-		if name != "" {
-			return name
-		} else {
-			HandleNewName(conn)
-		}
-	}
-} */
-
 func HandleClient(structure Client, count *int, file *os.File) {
 	defer structure.Conn.Close()
 
