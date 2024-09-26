@@ -36,6 +36,7 @@ func IsValidArgPort() *string {
 		fmt.Println("[USAGE]: ./TCPChat $port")
 		return nil
 	} else {
+		portStr += args[0]
 		return &portStr
 	}
 }
