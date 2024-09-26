@@ -4,12 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 	"time"
 )
-
-var mapMu sync.Mutex // Pour la map clients
-var logMu sync.Mutex // Pour Logs
 
 // function that transmits a client's message to everybody else
 func Transmission(clientstruct Client, file *os.File) {

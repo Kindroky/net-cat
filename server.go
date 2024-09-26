@@ -5,20 +5,14 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 )
 
 var Logs string
 
-func main() {
-	portStr := IsValidArgPort()
-	if portStr == nil {
-		return
-	}
-	listener := ServerCreation(portStr)
-	file := CreateLogsFile()
-	NewUserConnection(listener, file)
-}
-
+var mapMu sync.Mutex   // Pour la map clients
+var logMu sync.Mutex   // Pour Logs
+var countMu sync.Mutex // Pour la variable count
 func IsValidArgPort() *string {
 	portStr := ":"
 	isValid := true
@@ -67,7 +61,9 @@ func NewUserConnection(listener net.Listener, file *os.File) {
 			continue
 
 		}
+		countMu.Lock()
 		count++
+		countMu.Unlock()
 		go func(connexion net.Conn) {
 			LePingouin(connexion)
 			StructAndMap(connexion)
@@ -84,30 +80,4 @@ func CreateLogsFile() *os.File {
 		log.Fatal(err)
 	}
 	return file
-}
-
-func LePingouin(connexion net.Conn) {
-	connexion.Write([]byte(`Welcome to TCP-Chat!
-         _nnnn_
-        dGGGGMMb
-       @p~qp~~qMb
-       M|@||@) M|
-       @,----.JM|
-      JS^\__/  qKL
-     dZP        qKRb
-    dZP          qKKb
-   fZP            SMMb
-   HZM            MMMM
-   FqM            MMMM
- __| ".        |\dS"qML
- |    ` + "`" + `.       | ` + "`" + `' \Zq
-_)      \.___.,|     .'
-\____   )MMMMMP|   .'
-     ` + "`" + `-'       ` + "`" + `--'
-`))
-}
-
-func HandleExit(con net.Conn) {
-	con.Write([]byte("Exiting..."))
-	con.Close()
 }
