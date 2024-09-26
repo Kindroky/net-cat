@@ -38,37 +38,41 @@ func HandleUsername(connexion net.Conn) string {
 	validUsername := true
 	username := ""
 	buf := bufio.NewScanner(connexion)
-	for {
-		buf.Scan()
-		username = buf.Text()
-		if username == "" {
+	buf.Scan()
+	username = buf.Text()
+	if username == "" {
+		validUsername = false
+	}
+	for _, client := range clients {
+		if username == client.Username {
 			validUsername = false
+			break
 		}
-		for _, client := range clients {
-			if username == client.Username {
-				validUsername = false
-				break
-			}
-		}
-		if !validUsername {
-			connexion.Write([]byte("Invalid Username\n"))
-			username = HandleUsername(connexion)
-		}
-		break
+	}
+	if !validUsername {
+		connexion.Write([]byte("Invalid Username\n"))
+		username = HandleUsername(connexion)
 	}
 	return username
 }
 
 func HandleClient(structure Client, count *int, file *os.File) {
-	defer structure.Conn.Close()
-
+	defer func() {
+		structure.Conn.Close()
+		DelogTransmission(structure, file)
+		delete(clients, structure.Conn)
+		*count--
+	}()
 	// Send initial message with client count
 	structure.Conn.Write([]byte(strconv.Itoa(*count) + "\n"))
 	var message string
 	bufClient := bufio.NewScanner(structure.Reader)
 	for {
 		// Read the client's message
-		bufClient.Scan()
+		scan := bufClient.Scan()
+		if !scan {
+			return
+		}
 		message = bufClient.Text() + "\n"
 
 		// Ignore empty messages
@@ -76,9 +80,7 @@ func HandleClient(structure Client, count *int, file *os.File) {
 			// Handle commands
 			if message[0] == '/' {
 				if message == "/exit\n" {
-					DelogTransmission(structure, file)
-					*count--
-					structure.Conn.Close()
+					return
 				} else if message == "/rename\n" {
 					oldUsername := structure.Username
 					structure.Username = StructAndMap(structure.Conn)

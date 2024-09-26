@@ -18,6 +18,7 @@ func main() {
 	file := CreateLogsFile()
 	NewUserConnection(listener, file)
 }
+
 func IsValidArgPort() *string {
 	portStr := ":"
 	isValid := true
