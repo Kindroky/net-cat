@@ -35,7 +35,7 @@ func StructAndMap(connexion net.Conn) string {
 }
 
 func HandleUsername(connexion net.Conn) string {
-	connexion.Write([]byte("[ENTER YOUR NAME]:"))
+	connexion.Write([]byte("[ENTER YOUR NAME]: "))
 	validUsername := true
 	username := ""
 	buf := bufio.NewScanner(connexion)
