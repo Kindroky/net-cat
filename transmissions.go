@@ -20,7 +20,7 @@ func Transmission(clientstruct Client, file *os.File) {
 	mapMu.Lock()
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			client.Conn.Write([]byte(fmtMessage))
+			client.Conn.Write([]byte("\r" + fmtMessage))
 		} else {
 			client.Conn.Write([]byte("\r\033[1A\033[K" + fmtMessage))
 		}
@@ -41,7 +41,7 @@ func LogTransmission(clientstruct Client, file *os.File) {
 	mapMu.Lock()
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			client.Conn.Write([]byte(fmtMessage))
+			client.Conn.Write([]byte("\r" + fmtMessage))
 		} else {
 			client.Conn.Write([]byte("\r\033[1A\033[K" + fmtMessage))
 		}
@@ -62,7 +62,7 @@ func DelogTransmission(clientstruct Client, file *os.File) {
 	mapMu.Lock()
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			client.Conn.Write([]byte(fmtMessage))
+			client.Conn.Write([]byte("\r" + fmtMessage))
 		} else {
 			client.Conn.Write([]byte("\r\033[1A\033[K" + fmtMessage))
 		}
@@ -83,7 +83,7 @@ func RenameTransmission(clientstruct Client, oldUsername string, file *os.File) 
 	mapMu.Lock()
 	for _, client := range clients {
 		if client.Username != clientstruct.Username {
-			client.Conn.Write([]byte(fmtMessage))
+			client.Conn.Write([]byte("\r" + fmtMessage))
 		} else {
 			client.Conn.Write([]byte("\r\033[1A\033[K" + fmtMessage))
 		}
