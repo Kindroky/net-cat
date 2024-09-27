@@ -13,7 +13,7 @@ var Logs string
 var mapMu sync.Mutex   // Pour la map clients
 var logMu sync.Mutex   // Pour Logs
 var countMu sync.Mutex // Pour la variable count
-func IsValidArgPort() *string {
+func IsValidArgPort() *string { // check if argument is a valide port
 	portStr := ":"
 	isValid := true
 	args := os.Args[1:]
@@ -37,9 +37,9 @@ func IsValidArgPort() *string {
 		return &portStr
 	}
 }
-func ServerCreation(portStr *string) net.Listener {
+func ServerCreation(portStr *string) net.Listener { // create server
 	if *portStr == ":" {
-		*portStr += "8989"
+		*portStr += "8989" // default port
 	}
 	listener, err := net.Listen("tcp", *portStr)
 	if err != nil {
@@ -47,7 +47,7 @@ func ServerCreation(portStr *string) net.Listener {
 	}
 	return listener
 }
-func NewUserConnection(listener net.Listener, file *os.File) {
+func NewUserConnection(listener net.Listener, file *os.File) { //manage new connections to the server
 	count := 0
 	for {
 		connexion, err := listener.Accept()
@@ -74,7 +74,7 @@ func NewUserConnection(listener net.Listener, file *os.File) {
 	}
 }
 
-func CreateLogsFile() *os.File {
+func CreateLogsFile() *os.File { // create logs text file
 	file, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatal(err)

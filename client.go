@@ -15,9 +15,9 @@ type Client struct {
 	Message  string
 }
 
-var clients = make(map[net.Conn]Client)
+var clients = make(map[net.Conn]Client) // map with connection as key and structure as value
 
-func StructAndMap(connexion net.Conn) string {
+func StructAndMap(connexion net.Conn) string { // add each client to the map
 	username := HandleUsername(connexion)
 	r := bufio.NewReader(connexion)
 	w := bufio.NewWriter(connexion)
@@ -34,7 +34,7 @@ func StructAndMap(connexion net.Conn) string {
 	return username
 }
 
-func HandleUsername(connexion net.Conn) string {
+func HandleUsername(connexion net.Conn) string { // Ask the client for its username
 	connexion.Write([]byte("[ENTER YOUR NAME]: "))
 	validUsername := true
 	username := ""
@@ -60,6 +60,7 @@ func HandleUsername(connexion net.Conn) string {
 }
 
 func HandleClient(structure Client, count *int, file *os.File) {
+	// delog part
 	defer func() {
 		structure.Conn.Close()
 		DelogTransmission(structure, file)
@@ -101,6 +102,7 @@ func HandleClient(structure Client, count *int, file *os.File) {
 	}
 }
 
+// display linux logo on entry
 func LePingouin(connexion net.Conn) {
 	connexion.Write([]byte(`Welcome to TCP-Chat!
          _nnnn_
