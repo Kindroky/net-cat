@@ -2,6 +2,26 @@
 
 A multi-client TCP chat server built in Go, replicating the TCP chat functionality of `Netcat`. This application allows multiple clients to connect, send messages, and interact with each other in real-time. It features message broadcasting, logging, and basic command handling.
 
+```
+Welcome to TCP-Chat!
+         _nnnn_
+        dGGGGMMb
+       @p~qp~~qMb
+       M|@||@) M|
+       @,----.JM|
+      JS^\__/  qKL
+     dZP        qKRb
+    dZP          qKKb
+   fZP            SMMb
+   HZM            MMMM
+   FqM            MMMM
+ __| ".        |\dS"qML
+ |    ` + "`"`.| `"`"`'\
+_)      \.___.,|     .'
+\____   )MMMMMP|   .'
+     `"`"`-'`"`"`-'
+```
+
 ## Features
 
 - **Netcat-like Functionality:** Provides a chat interface similar to `Netcat`'s TCP communication feature.
